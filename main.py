@@ -24,12 +24,12 @@ bot = discord.Bot(
     status=discord.Status.dnd,
     activity=discord.Game(name="Initializing..."),
     owner_ids=[246291288775852033],
-    intents=
+    intents=intents
 )
 
 bot.startup_complete = False
 bot.startTime = time()
-bot.error_webhook = bot.webhook_session = None
+bot.error_webhook = bot.webhook_session = bot.languagemodel_session = None
 
 
 @bot.event
@@ -37,6 +37,7 @@ async def on_ready():
     if bot.startup_complete:
         try:
             await bot.webhook_session.close()
+            await bot.languagemodel_session.close()
             await bot.close()
         except RuntimeError:
             await bot.close()
@@ -48,6 +49,7 @@ async def on_ready():
         await create_database()  # this just cleans this file up a lot
 
     bot.webhook_session = ClientSession()
+    bot.languagemodel_session = ClientSession()
     # bot.error_webhook = discord.Webhook.from_url(
     #     getenv("DISCORD_ERROR_WEBHOOK"),
     #     session=bot.webhook_session
@@ -70,6 +72,7 @@ async def shutdown(ctx):
     await ctx.respond("ok, shutting down", ephemeral=True)
     try:
         await bot.webhook_session.close()
+        await bot.languagemodel_session.close()
         await bot.close()
     except AttributeError:
         await bot.close()

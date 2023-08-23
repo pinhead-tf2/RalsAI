@@ -6,7 +6,7 @@ HOST = 'localhost:5000'
 URI = f'http://{HOST}/api/v1/chat'
 
 
-async def generate_response(user_input, history):
+async def generate_response(session: aiohttp.ClientSession, user_input, history):
     request = {
         'user_input': user_input,
         'max_new_tokens': 250,
@@ -24,14 +24,13 @@ async def generate_response(user_input, history):
         'preset': 'moddedDivineIntellect',
     }
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(URI, json=request) as response:
-            if response.status == 200:
-                response_json = await response.json()
-                result = response_json['results'][0]['history']
-                print(json.dumps(result, indent=4))
-                # print()
-                # print(result['visible'][-1][1])
+    async with session.post(URI, json=request) as response:
+        if response.status == 200:
+            response_json = await response.json()
+            result = response_json['results'][0]['history']
+            # print(json.dumps(result, indent=4))
+            # print()
+            print(result['visible'][-1][1])
 
 
 async def test_data():
@@ -54,5 +53,3 @@ async def test_data():
 
     await generate_response(user_input, history)
 
-
-asyncio.run(test_data())

@@ -4,6 +4,20 @@ from dotenv import load_dotenv
 
 
 database_name = "history_database.sqlite"
+default_history = {
+        "internal": [
+            [
+                "<|BEGIN-VISIBLE-CHAT|>",
+                "Greetings! I am Ralsei! You, it's wonderful to meet you!"
+            ]
+        ],
+        "visible": [
+            [
+                "",
+                "Greetings! I am Ralsei! You, it's wonderful to meet you!"
+            ]
+        ]
+    }
 
 
 async def create_database():
@@ -11,17 +25,19 @@ async def create_database():
         await db.execute('''
             CREATE TABLE IF NOT EXISTS users
             (
-                id                INTEGER not null
-                    primary key
-                    ON DElETE CASCADE,
-                is_banned INTEGER default (0) not null 
+                id        INTEGER           not null
+                    primary key,
+                is_banned INTEGER default 0 not null
             )
         ''')
-        await db.execute('''
+        await db.execute(f'''
             CREATE TABLE IF NOT EXISTS history
             (
-                id INTEGER not null primary key references users,
-                data TEXT not null
+                id   INTEGER not null
+                    primary key
+                    references users
+                        on delete cascade,
+                data TEXT    not null default ({default_history})
             )
         ''')
         await db.commit()
