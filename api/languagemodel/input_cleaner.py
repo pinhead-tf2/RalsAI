@@ -38,7 +38,7 @@ async def detect_banned_words(unscreened_input: str):
 
 # https://codereview.stackexchange.com/a/217074
 # big thanks to this guy
-async def get_levenshtein_distance(str1, str2, ):
+async def get_levenshtein_distance(str1, str2):
     counter = {"+": 0, "-": 0}
     distance = 0
     for edit_code, *_ in ndiff(str1, str2):
