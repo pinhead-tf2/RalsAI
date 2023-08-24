@@ -29,6 +29,7 @@ bot = discord.Bot(
 
 bot.startup_complete = False
 bot.startTime = time()
+bot.languagemodel_thinking = False
 bot.error_webhook = bot.webhook_session = bot.languagemodel_session = None
 
 

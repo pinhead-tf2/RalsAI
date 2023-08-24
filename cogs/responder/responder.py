@@ -3,7 +3,28 @@ import discord
 from discord.ext import commands
 from api.languagemodel.request_handler import generate_response
 
-database_name = "history_database.sqlite"
+chat_history = {
+    "internal": [
+        [
+            "<|BEGIN-VISIBLE-CHAT|>",
+            "Greetings! I am Ralsei! You, it's wonderful to meet you!"
+        ]
+    ],
+    "visible": [
+        [
+            "",
+            "Greetings! I am Ralsei! You, it's wonderful to meet you!"
+        ]
+    ]
+}
+
+
+def save_chat_history(new_history):
+    chat_history = new_history
+
+
+def load_chat_history():
+    return chat_history
 
 
 class Responder(commands.Cog):
@@ -11,21 +32,26 @@ class Responder(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_message(self, ctx):
-        if ctx.author == self.bot:
-            return
+    async def on_message(self, message):
+        if (message.author.id != self.bot.user.id and message.channel.id == 1144025916729724928 and
+                self.bot.user.mentioned_in(message) and self.bot.languagemodel_thinking is False):
+            new_history = generated_response = None
 
-        async with aiosqlite.connect(database_name) as db:
-            cursor = await db.execute(sql=f'SELECT is_banned FROM users WHERE id={ctx.author.id}')
-            result = await cursor.fetchone()
-            print(result)
+            async with message.channel.typing():
+                self.bot.languagemodel_thinking = True
+                formatted_username = f'[{message.author.name}]: '
+                cleaned_message_content = message.clean_content.replace("@", "")
+                formatted_message = formatted_username + cleaned_message_content
 
-            if result is None:
-                print("New user detected")
-                await db.execute("INSERT INTO users (id) "
-                                 "VALUES (?)",
-                                 (ctx.author.id))
-                await db.commit()
+                print(formatted_message)
+
+                new_history, generated_response = await generate_response(self.bot.languagemodel_session,
+                                                                          formatted_message,
+                                                                          load_chat_history())
+
+            save_chat_history(new_history)
+            await message.reply(generated_response)
+            self.bot.languagemodel_thinking = False
 
 
 def setup(bot):
